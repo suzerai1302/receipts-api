@@ -81,12 +81,18 @@ Integration tests boot the real app via `WebApplicationFactory` against a SQLite
 
 ## Deployment
 
-Containerized via the included `Dockerfile`. Deployable to any container host (Render, Railway, Fly.io). Set two environment variables:
+Containerized via the included `Dockerfile` and deployable to any container host. A [Render Blueprint](render.yaml) is included for one-click deploy:
 
-- `ConnectionStrings__Postgres` — your Postgres connection string
-- `Jwt__Key` — a secret signing key (≥ 32 chars)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/suzerai1302/receipts-api)
 
-> The committed `appsettings.json` ships throwaway local-dev defaults. Production reads the two variables above — never commit real secrets.
+The app runs as a free Render web service backed by a free [Neon](https://neon.tech) Postgres. On deploy, set:
+
+- `DATABASE_URL` — your Postgres URL (e.g. `postgresql://user:pass@host/db`); the app parses it into an Npgsql connection string. (Locally, `ConnectionStrings__Postgres` is used instead.)
+- `Jwt__Key` — a secret signing key (≥ 32 chars); Render generates one automatically via the blueprint.
+
+Migrations are applied automatically on startup.
+
+> The committed `appsettings.json` ships throwaway local-dev defaults. Production reads the variables above — never commit real secrets.
 
 ## License
 

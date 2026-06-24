@@ -26,10 +26,13 @@ if (!builder.Environment.IsEnvironment("Testing"))
     if (!string.IsNullOrEmpty(databaseUrl))
     {
         var uri = new Uri(databaseUrl);
-        var creds = uri.UserInfo.Split(':');
+        var creds = uri.UserInfo.Split(':', 2);
         var dbPort = uri.Port == -1 ? 5432 : uri.Port;
+        // Credentials in the URL are percent-encoded (Neon/Render passwords can contain special chars).
+        var user = Uri.UnescapeDataString(creds[0]);
+        var pass = creds.Length > 1 ? Uri.UnescapeDataString(creds[1]) : "";
         pgConn = $"Host={uri.Host};Port={dbPort};Database={uri.AbsolutePath.TrimStart('/')};" +
-                 $"Username={creds[0]};Password={creds[1]};SSL Mode=Require;Trust Server Certificate=true";
+                 $"Username={user};Password={pass};SSL Mode=Require;Trust Server Certificate=true";
     }
 
     builder.Services.AddDbContext<ReceiptsDbContext>(options => options.UseNpgsql(pgConn));
