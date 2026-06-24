@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Receipts.API;
@@ -60,6 +61,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
+// Render (and most PaaS) terminate TLS at a proxy and forward plain HTTP with an
+// X-Forwarded-Proto header. Honor it so Request.Scheme is "https" — otherwise the
+// generated OpenAPI server URL is http:// and Scalar's browser calls get blocked as
+// mixed content. KnownProxies/Networks are cleared because the proxy isn't loopback.
+var forwardedOptions = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+};
+forwardedOptions.KnownNetworks.Clear();
+forwardedOptions.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedOptions);
 
 // Apply pending migrations on startup (skipped under tests, which use SQLite).
 if (!app.Environment.IsEnvironment("Testing"))
