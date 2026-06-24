@@ -55,6 +55,7 @@ The domain (`Receipts.Core`) has no framework dependencies — the settlement al
 | POST | `/auth/login` | – | Get a JWT |
 | POST | `/groups` | ✓ | Create a group (creator becomes a member) |
 | POST | `/groups/{id}/members` | ✓ | Add a member by email |
+| POST | `/groups/{id}/members/batch` | ✓ | Add several members at once (`{ "emails": [...] }`) |
 | POST | `/groups/{id}/expenses` | ✓ | Record an expense (payer, amount, participants) |
 | GET | `/groups/{id}/settlement` | ✓ | Computed "who owes whom" |
 | GET | `/health` | – | Liveness check |

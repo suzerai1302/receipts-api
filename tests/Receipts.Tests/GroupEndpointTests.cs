@@ -51,6 +51,25 @@ public class GroupEndpointTests : IClassFixture<TestWebApplicationFactory>
     }
 
     [Fact]
+    public async Task AddMembersBatch_AddsAllEmailsAndSkipsDuplicates()
+    {
+        var client = await AuthenticatedClientAsync("host@example.com");
+        var created = await (await client.PostAsJsonAsync("/groups", new { name = "Trip" }))
+            .Content.ReadFromJsonAsync<GroupResponse>();
+
+        var response = await client.PostAsJsonAsync(
+            $"/groups/{created!.Id}/members/batch",
+            new { emails = new[] { "a@example.com", "b@example.com", "host@example.com" } });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var group = await response.Content.ReadFromJsonAsync<GroupResponse>();
+        Assert.Contains("a@example.com", group!.Members);
+        Assert.Contains("b@example.com", group.Members);
+        // host was already a member (creator) — not duplicated.
+        Assert.Equal(3, group.Members.Count);
+    }
+
+    [Fact]
     public async Task AddExpense_ThenGetSettlement_ReturnsWhoOwesWhom()
     {
         var client = await AuthenticatedClientAsync("payer@example.com");

@@ -18,7 +18,12 @@ if (!string.IsNullOrEmpty(port))
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    // Document the JWT scheme + mark authed endpoints, so Scalar shows an Authorize box.
+    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+    options.AddOperationTransformer<AuthorizationOperationTransformer>();
+});
 if (!builder.Environment.IsEnvironment("Testing"))
 {
     // Render/Heroku expose a postgres:// URL; convert it to an Npgsql connection string.
@@ -131,6 +136,20 @@ app.MapPost("/groups/{id:guid}/members", async (Guid id, AddMemberRequest reques
     return Results.Ok(new GroupResponse(group.Id, group.Name, group.MemberEmails));
 }).RequireAuthorization();
 
+app.MapPost("/groups/{id:guid}/members/batch", async (Guid id, AddMembersRequest request, IGroupRepository groups) =>
+{
+    var group = await groups.GetByIdAsync(id);
+    if (group is null) return Results.NotFound();
+
+    foreach (var email in request.Emails)
+        if (!string.IsNullOrWhiteSpace(email) &&
+            !group.MemberEmails.Contains(email, StringComparer.OrdinalIgnoreCase))
+            group.MemberEmails.Add(email);
+
+    await groups.UpdateAsync(group);
+    return Results.Ok(new GroupResponse(group.Id, group.Name, group.MemberEmails));
+}).RequireAuthorization();
+
 app.MapPost("/groups/{id:guid}/expenses", async (Guid id, AddExpenseRequest request, IGroupRepository groups) =>
 {
     var group = await groups.GetByIdAsync(id);
@@ -156,4 +175,5 @@ public record LoginRequest(string Email, string Password);
 public record CreateGroupRequest(string Name);
 public record GroupResponse(Guid Id, string Name, List<string> Members);
 public record AddMemberRequest(string Email);
+public record AddMembersRequest(List<string> Emails);
 public record AddExpenseRequest(string PayerId, decimal Amount, List<string> ParticipantIds);
