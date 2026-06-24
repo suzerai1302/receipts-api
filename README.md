@@ -2,7 +2,9 @@
 
 A clean, tested REST API for splitting shared expenses and settling up — "who owes whom" across a group, minimized to the fewest transactions. Built with ASP.NET Core and Entity Framework Core.
 
-> **Live demo:** _coming soon_ · **Interactive API docs:** `/scalar` on the live URL
+> **Live demo:** https://receipts-api-2hyk.onrender.com · **Interactive API docs:** [`/scalar`](https://receipts-api-2hyk.onrender.com/scalar)
+>
+> _Hosted on Render's free tier — the first request after ~15 min idle takes ~50s to wake, then it's fast._
 
 ![CI](https://github.com/suzerai1302/receipts-api/actions/workflows/ci.yml/badge.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
